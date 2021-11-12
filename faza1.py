@@ -20,6 +20,6 @@ profiles["race"].replace({"black": "Black", "white": "White", "blsck": "Black"},
 profiles['birthdate'] = pd.to_datetime(profiles['birthdate'], utc=False)
 
 labor2 = labor.drop(["index", "name"], axis=1)
-profiles2 = profiles.drop(["residence", "job", "company", "name"], axis=1)
+profiles2 = profiles.drop(["job", "company", "name"], axis=1)
 
 merged = pd.merge(profiles2, labor2, how='outer', on='ssn')
