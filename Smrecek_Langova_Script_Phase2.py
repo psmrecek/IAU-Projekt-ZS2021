@@ -1,3 +1,32 @@
+import matplotlib.pyplot as plt
+import seaborn as sns
+import pandas as pd
+import numpy as np
+import scipy.stats as stats
+import statsmodels.api as sm
+import statsmodels.stats.api as sms
+import statsmodels.stats as sm_stats
+
+import datetime
+import re
+import category_encoders as ce
+from sklearn.impute import SimpleImputer, KNNImputer
+from numpy import percentile
+
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import PowerTransformer, QuantileTransformer
+
+from sklearn.feature_selection import VarianceThreshold, SelectKBest, SelectPercentile, SelectFromModel
+from sklearn.feature_selection import mutual_info_regression, chi2, f_regression, f_classif
+from sklearn.ensemble import RandomForestClassifier
+
+from sklearn.preprocessing import StandardScaler, MinMaxScaler
+import matplotlib.pyplot as plt
+
+from sklearn.base import TransformerMixin
+from sklearn.pipeline import Pipeline
+from sklearn.model_selection import train_test_split
+
 def phase1():
     labor = pd.read_csv("046/labor.csv", sep='\t')
     labor.rename(columns = {"Unnamed: 0": "index"}, inplace = True)
@@ -147,22 +176,34 @@ class handleTransformations(TransformerMixin):
         
     def transformPower(self, merged):
         power = PowerTransformer(method='yeo-johnson', standardize=True)
-        df_return = pd.DataFrame(power.fit_transform(merged), columns = merged.columns)
+        merged_without_indicator = merged.drop('indicator', axis=1)
+        indicator = merged['indicator']
+        df_return = pd.DataFrame(power.fit_transform(merged_without_indicator), columns = merged_without_indicator.columns)
+        df_return = pd.concat([df_return, indicator], axis=1)
         return df_return
     
     def transormQuan(self, merged):
         quan = QuantileTransformer(n_quantiles=10, random_state=0)
-        df_return = pd.DataFrame(quan.fit_transform(merged), columns = merged.columns)
+        merged_without_indicator = merged.drop('indicator', axis=1)
+        indicator = merged['indicator']
+        df_return = pd.DataFrame(quan.fit_transform(merged_without_indicator), columns = merged_without_indicator.columns)
+        df_return = pd.concat([df_return, indicator], axis=1)
         return df_return
     
     def scaleMM(self, merged):
         norm_s = MinMaxScaler()
-        df_return = pd.DataFrame(norm_s.fit_transform(merged), columns = merged.columns)
+        merged_without_indicator = merged.drop('indicator', axis=1)
+        indicator = merged['indicator']
+        df_return = pd.DataFrame(norm_s.fit_transform(merged_without_indicator), columns = merged_without_indicator.columns)
+        df_return = pd.concat([df_return, indicator], axis=1)
         return df_return
         
     def scaleS(self, merged):
         stan_s = StandardScaler()
-        df_return = pd.DataFrame(stan_s.fit_transform(merged), columns = merged.columns)
+        merged_without_indicator = merged.drop('indicator', axis=1)
+        indicator = merged['indicator']
+        df_return = pd.DataFrame(stan_s.fit_transform(merged_without_indicator), columns = merged_without_indicator.columns)
+        df_return = pd.concat([df_return, indicator], axis=1)
         return df_return
     
     def fit(self, X):
@@ -194,3 +235,9 @@ class handleSelection(TransformerMixin):
             return X
         else:
             return X[self.list_attributes]
+
+def pipetofile(transformed_data, X_train, X_test, y_train, y_test):
+    X_train.to_csv('processed_data_after_phase_2_X_train.csv', sep='\t')
+    X_test.to_csv('processed_data_after_phase_2_X_test.csv', sep='\t')
+    y_train.to_csv('processed_data_after_phase_2_y_train.csv', sep='\t')
+    y_test.to_csv('processed_data_after_phase_2_y_test.csv', sep='\t')            
